@@ -11,6 +11,8 @@ INPUT_SCHEMA = {
     "additionalProperties": False,
     "required": ["requested_route", "facts", "assumptions", "constraints", "unknowns"],
     "properties": {
+        "language": {"type": "string", "enum": ["en", "zh-CN"], "default": "en",
+                     "description": "Generated labels and route guidance only; original text and quotes stay unchanged. Defaults to English. Validation errors remain English."},
         "goal": _TEXT,
         "requested_route": {
             "type": "string", "maxLength": 64,
