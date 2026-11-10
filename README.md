@@ -21,3 +21,7 @@ Preserve the original prompt, cite literal source spans, and mark missing/non-ap
 The private candidate's 300 deterministic tests passed, and its seven-file runtime package passed Hermes `plugins validate` and `doctor` in an isolated environment. The public PR-head installation result is recorded separately in the PR after its final SHA is verified; do not infer that result from the private candidate. Complete-task token savings, natural model behavior, live Discord interaction, and full product acceptance are not established. No paid API call, remote service, or credential is required by this Plugin.
 
 **License:** No open-source license has been granted or selected yet. Public visibility does not grant reuse rights; contact the owner before redistribution or adaptation.
+
+### Navigator output language
+
+`navigator_prepare` defaults to English for generated result text, route guidance, stop conditions, and Markdown. Set optional `language` to `"zh-CN"` to use the original Simplified Chinese presentation, or `"en"` explicitly. Other values are rejected. Original sources, quotes, and caller-provided task data are never translated. Validation errors use English, including invalid-language and output-size failures. The per-turn reminder is unchanged.
