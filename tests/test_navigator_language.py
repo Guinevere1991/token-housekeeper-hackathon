@@ -71,6 +71,13 @@ class NavigatorLanguageTests(unittest.TestCase):
         for value in (None, [], 3, 'text', {}):
             self.assertEqual(navigator.prepare(value)['status'], 'invalid_input')
 
+    def test_malformed_language_is_not_interpreted_before_shape_validation(self):
+        class Poison:
+            def __hash__(self): return hash('language')
+            def __eq__(self, other): raise AssertionError('untrusted equality invoked')
+        for p in (dict(payload(), language=Poison()), {Poison(): 'zh-CN'}):
+            self.assertEqual(navigator.prepare(p)['status'], 'invalid_input')
+
     def test_unknown_key_still_rejected(self):
         self.assertEqual(navigator.prepare(dict(payload(), extra=True))['status'], 'invalid_input')
 
@@ -80,6 +87,32 @@ class NavigatorLanguageTests(unittest.TestCase):
         self.assertEqual(r['status'], 'needs_input')
         self.assertIn('Data status: needs_input', r['markdown'])
         self.assertTrue(r['questions'][0].isascii())
+
+    def test_chinese_opt_in_localizes_generated_failures(self):
+        p = dict(payload(), language='zh-CN')
+        cases = []
+        missing = copy.deepcopy(p); missing.pop('sources')
+        cases.append((missing, 'needs_input', 'questions'))
+        cases.append((dict(p, requested_route='execute'), 'unsupported', 'errors'))
+        bad_quote = copy.deepcopy(p); bad_quote['facts'][0]['quote'] = '不存在'
+        cases.append((bad_quote, 'invalid_input', 'errors'))
+        too_many = copy.deepcopy(p); too_many['sources'].append(dict(source_id='c', text='第三份'))
+        cases.append((too_many, 'invalid_input', 'errors'))
+        too_long = copy.deepcopy(p); too_long['sources'][0]['text'] = 'x'*8193
+        cases.append((too_long, 'invalid_input', 'errors'))
+        for case, status, field in cases:
+            with self.subTest(status=status, field=field):
+                result = navigator.prepare(case)
+                self.assertEqual(result['status'], status)
+                self.assertIsNone(result['handoff'])
+                self.assertIn('任务卡', result['markdown'])
+                self.assertEqual(len(result[field]), 1)
+                self.assertTrue(any('\u4e00' <= c <= '\u9fff' for c in result[field][0]))
+                self.assertIn(result[field][0], result['markdown'])
+        with patch.object(navigator, '_markdown', return_value='x'*131073):
+            limit = navigator.prepare(p)
+        self.assertEqual(limit['status'], 'invalid_input')
+        self.assertTrue(any('\u4e00' <= c <= '\u9fff' for c in limit['errors'][0]))
 
     def test_unsupported_route(self):
         r = navigator.prepare(payload('execute'))

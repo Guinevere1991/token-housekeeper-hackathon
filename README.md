@@ -24,4 +24,4 @@ The private candidate's 300 deterministic tests passed, and its seven-file runti
 
 ### Navigator output language
 
-`navigator_prepare` defaults to English for generated result text, route guidance, stop conditions, and Markdown. Set optional `language` to `"zh-CN"` to use the original Simplified Chinese presentation, or `"en"` explicitly. Other values are rejected. Original sources, quotes, and caller-provided task data are never translated. Validation errors use English, including invalid-language and output-size failures. The per-turn reminder is unchanged.
+`navigator_prepare` defaults to English for generated result text, route guidance, stop conditions, and Markdown. Set optional `language` to `"zh-CN"` to use the original Simplified Chinese presentation, or `"en"` explicitly. Other values are rejected. Original sources, quotes, and caller-provided task data are never translated. Generated errors and questions follow a valid selected language (English by default; Simplified Chinese when `zh-CN` is chosen). Invalid-language errors stay in English. Version 0.2.2 adds fail-first localization and malformed-input regressions; the per-turn reminder is unchanged.

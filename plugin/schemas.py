@@ -12,7 +12,7 @@ INPUT_SCHEMA = {
     "required": ["requested_route", "facts", "assumptions", "constraints", "unknowns"],
     "properties": {
         "language": {"type": "string", "enum": ["en", "zh-CN"], "default": "en",
-                     "description": "Generated labels and route guidance only; original text and quotes stay unchanged. Defaults to English. Validation errors remain English."},
+                     "description": "Generated labels and route guidance only; original text and quotes stay unchanged. Defaults to English. Generated errors/questions use the selected language when valid; invalid language values are rejected in English."},
         "goal": _TEXT,
         "requested_route": {
             "type": "string", "maxLength": 64,

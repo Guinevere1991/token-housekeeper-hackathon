@@ -47,6 +47,24 @@ def _label(text, language):
     return _ENGLISH[text] if language == "en" else text
 
 
+_ZHCN_MESSAGES = {
+    "Payload must match the declared schema.": "输入必须符合声明的结构。",
+    "Goal must be bounded UTF-8 text without NUL.": "目标必须是符合长度限制且不含 NUL 的 UTF-8 文本。",
+    "Route must be bounded UTF-8 text without NUL.": "路线必须是符合长度限制且不含 NUL 的 UTF-8 文本。",
+    "A collection has an invalid type or exceeds its entry limit.": "列表类型无效或超过条目上限。",
+    "List entries must be bounded UTF-8 text without NUL.": "列表条目必须是符合长度限制且不含 NUL 的 UTF-8 文本。",
+    "A source has an invalid schema, ID, or text.": "来源的结构、标识或文本无效。",
+    "Source IDs must be unique.": "来源标识必须唯一。",
+    "Aggregate source text exceeds the byte limit.": "来源文本总量超过字节上限。",
+    "A fact has an invalid schema, ID, text, or empty quote.": "事实陈述的结构、标识、文本或引用无效。",
+    "Every quote must occur exactly in its referenced source.": "每段引用都必须逐字出现在其指向的来源中。",
+    "Comparison requires exactly two sources; extra sources are not selected silently.": "比较需要恰好两份来源；不会默默挑选或忽略多余来源。",
+    "Requested route is not supported.": "请求的路线不受支持。",
+    "Provide a nonempty goal and the required nonempty sources.": "请提供非空目标和所需的非空来源。",
+    "Prepared output exceeds the byte limit.": "生成的输出超过字节上限。",
+}
+
+
 _ROUTES = {
     "compare": {
         "reason": "调用方请求比较恰好两份提供的资料。",
@@ -66,6 +84,8 @@ _STOP = ["执行前必须由实际宿主独立验证自身所需能力及批准�
 
 
 def _response(status, message=None, language="en"):
+    if message and language == "zh-CN":
+        message = _ZHCN_MESSAGES.get(message, message)
     return {"schema_version": "1.1", "status": status,
             "capability_status": "unverified", "execution_authorized": False,
             "downstream_status": "not_started",
@@ -185,9 +205,14 @@ def prepare(payload):
     See docs/CORE_CONTRACT.md for limits, precedence, and citation semantics.
     """
     error = _validate(payload)
+    language = "en"
+    if (type(payload) is dict and len(payload) <= len(_KEYS)
+            and all(type(key) is str for key in payload)):
+        requested_language = payload.get("language")
+        if type(requested_language) is str and requested_language == "zh-CN":
+            language = "zh-CN"
     if error:
-        return _response("invalid_input", error)
-    language = payload.get("language", "en")
+        return _response("invalid_input", error, language)
     route = payload["requested_route"]
     if route not in _ROUTES:
         return _response("unsupported", "Requested route is not supported.", language)
@@ -217,5 +242,5 @@ def prepare(payload):
     # Fail closed, never truncate evidence. Default ASCII JSON is conservative
     # relative to compact/UTF-8 JSON and provides a precise public size metric.
     if len(json.dumps(result, ensure_ascii=True).encode("utf-8")) > 131072:
-        return _response("invalid_input", "Prepared output exceeds the byte limit.")
+        return _response("invalid_input", "Prepared output exceeds the byte limit.", language)
     return result
