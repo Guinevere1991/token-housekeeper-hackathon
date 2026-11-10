@@ -1,0 +1,12 @@
+name: task-navigator
+version: 0.2.2
+description: Native token家政婦 5W1H task cards plus the legacy supplied-text Navigator tool.
+kind: standalone
+requires_hermes: ">=0.21.5"
+provides_tools:
+  - navigator_prepare
+  - housekeeper_prepare
+provides_hooks:
+  - pre_llm_call
+requires_env: []
+capabilities: []
